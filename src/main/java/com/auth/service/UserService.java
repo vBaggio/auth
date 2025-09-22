@@ -3,12 +3,12 @@ package com.auth.service;
 import com.auth.dto.UserResponse;
 import com.auth.entity.Role;
 import com.auth.entity.User;
+import com.auth.exception.UserNotFoundException;
 import com.auth.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -24,14 +24,16 @@ public class UserService {
                 .collect(Collectors.toList());
     }
     
-    public Optional<UserResponse> getUserById(Long id) {
-        return userRepository.findById(id)
-                .map(this::convertToUserResponse);
+    public UserResponse getUserById(Long id) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new UserNotFoundException("Usuário não encontrado com ID: " + id));
+        return convertToUserResponse(user);
     }
     
-    public Optional<UserResponse> getUserByEmail(String email) {
-        return userRepository.findByEmail(email)
-                .map(this::convertToUserResponse);
+    public UserResponse getUserByEmail(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UserNotFoundException("Usuário não encontrado com email: " + email));
+        return convertToUserResponse(user);
     }
     
     private UserResponse convertToUserResponse(User user) {

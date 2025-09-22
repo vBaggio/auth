@@ -153,6 +153,66 @@ Retorna dados de um usuário por email (apenas ADMIN).
 Authorization: Bearer <admin_token>
 ```
 
+## Tratamento de Erros
+
+O sistema implementa um tratamento seguro de erros que evita a exposição de informações sensíveis:
+
+### Resposta Padrão de Erro
+```json
+{
+  "message": "Mensagem amigável em português",
+  "error": "CODIGO_ERRO_ESPECIFICO",
+  "status": 400,
+  "timestamp": "2024-01-01T12:00:00",
+  "path": "/api/auth/register"
+}
+```
+
+### Códigos de Erro
+- `EMAIL_ALREADY_EXISTS` - Email já está em uso
+- `INVALID_CREDENTIALS` - Credenciais inválidas
+- `USER_NOT_FOUND` - Usuário não encontrado
+- `ROLE_NOT_FOUND` - Função não encontrada
+- `VALIDATION_ERROR` - Dados de entrada inválidos
+- `ACCESS_DENIED` - Acesso negado
+- `AUTHENTICATION_FAILED` - Falha na autenticação
+- `INTERNAL_ERROR` - Erro interno do servidor
+
+### Exemplos de Respostas de Erro
+
+#### Email já em uso (409)
+```json
+{
+  "message": "Este email já está em uso",
+  "error": "EMAIL_ALREADY_EXISTS",
+  "status": 409,
+  "timestamp": "2024-01-01T12:00:00",
+  "path": "/api/auth/register"
+}
+```
+
+#### Credenciais inválidas (401)
+```json
+{
+  "message": "Credenciais inválidas",
+  "error": "INVALID_CREDENTIALS",
+  "status": 401,
+  "timestamp": "2024-01-01T12:00:00",
+  "path": "/api/auth/login"
+}
+```
+
+#### Dados de validação inválidos (400)
+```json
+{
+  "message": "Dados de entrada inválidos",
+  "error": "VALIDATION_ERROR",
+  "status": 400,
+  "timestamp": "2024-01-01T12:00:00",
+  "path": "/api/auth/register"
+}
+```
+
 ## Usuário Admin Padrão
 
 O sistema cria automaticamente um usuário admin padrão:
@@ -168,6 +228,10 @@ O sistema cria automaticamente um usuário admin padrão:
 - CORS configurado para localhost
 - Validação de entrada com Bean Validation
 - Controle de acesso baseado em roles
+- **Tratamento seguro de erros** - Não exposição de informações sensíveis
+- **Global Exception Handler** - Tratamento centralizado de exceções
+- **Exceções customizadas** - Mensagens de erro padronizadas e seguras
+- **Logs seguros** - Informações sensíveis não são logadas
 
 ## Estrutura do Projeto
 
@@ -183,12 +247,20 @@ src/main/java/com/auth/
 │   └── UserController.java
 ├── dto/
 │   ├── AuthResponse.java
+│   ├── ErrorResponse.java
 │   ├── LoginRequest.java
 │   ├── RegisterRequest.java
 │   └── UserResponse.java
 ├── entity/
 │   ├── Role.java
 │   └── User.java
+├── exception/
+│   ├── AuthException.java
+│   ├── EmailAlreadyExistsException.java
+│   ├── GlobalExceptionHandler.java
+│   ├── InvalidCredentialsException.java
+│   ├── RoleNotFoundException.java
+│   └── UserNotFoundException.java
 ├── repository/
 │   ├── RoleRepository.java
 │   └── UserRepository.java

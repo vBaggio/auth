@@ -10,7 +10,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/users")
@@ -53,16 +52,14 @@ public class UserController {
     @GetMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<UserResponse> getUserById(@PathVariable Long id) {
-        Optional<UserResponse> user = userService.getUserById(id);
-        return user.map(ResponseEntity::ok)
-                  .orElse(ResponseEntity.notFound().build());
+        UserResponse user = userService.getUserById(id);
+        return ResponseEntity.ok(user);
     }
     
     @GetMapping("/email/{email}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<UserResponse> getUserByEmail(@PathVariable String email) {
-        Optional<UserResponse> user = userService.getUserByEmail(email);
-        return user.map(ResponseEntity::ok)
-                  .orElse(ResponseEntity.notFound().build());
+        UserResponse user = userService.getUserByEmail(email);
+        return ResponseEntity.ok(user);
     }
 }

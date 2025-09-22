@@ -9,7 +9,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -24,30 +23,21 @@ public class AuthController {
     private AuthService authService;
     
     @PostMapping("/register")
-    public ResponseEntity<?> register(@Valid @RequestBody RegisterRequest request) {
-        try {
-            AuthResponse response = authService.register(request);
-            return ResponseEntity.ok(response);
-        } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
-        }
+    public ResponseEntity<AuthResponse> register(@Valid @RequestBody RegisterRequest request) {
+        AuthResponse response = authService.register(request);
+        return ResponseEntity.ok(response);
     }
     
     @PostMapping("/login")
-    public ResponseEntity<?> login(@Valid @RequestBody LoginRequest request) {
+    public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest request) {
         logger.info("Login attempt for email: {}", request.getEmail());
-        try {
-            AuthResponse response = authService.login(request);
-            logger.info("Login successful for email: {}", request.getEmail());
-            return ResponseEntity.ok(response);
-        } catch (Exception e) {
-            logger.error("Login failed for email: {}, error: {}", request.getEmail(), e.getMessage(), e);
-            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
-        }
+        AuthResponse response = authService.login(request);
+        logger.info("Login successful for email: {}", request.getEmail());
+        return ResponseEntity.ok(response);
     }
     
     @GetMapping("/test")
-    public ResponseEntity<?> test() {
-        return ResponseEntity.ok(Map.of("message", "Auth service is working!"));
+    public ResponseEntity<String> test() {
+        return ResponseEntity.ok("Auth service is working!");
     }
 }

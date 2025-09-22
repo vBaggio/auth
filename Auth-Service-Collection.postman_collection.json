@@ -11,6 +11,46 @@
 			"item": [
 				{
 					"name": "Register User",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"// Verifica se a resposta foi bem-sucedida (status 200)",
+									"if (pm.response.code === 200) {",
+									"    // Parse do JSON da resposta",
+									"    const responseJson = pm.response.json();",
+									"    ",
+									"    // Verifica se o token existe na resposta",
+									"    if (responseJson.token) {",
+									"        // Armazena o token na variável de ambiente auth_token",
+									"        pm.environment.set('auth_token', responseJson.token);",
+									"        ",
+									"        // Log para confirmar que o token foi capturado",
+									"        console.log('Token capturado com sucesso:', responseJson.token);",
+									"        ",
+									"        // Teste para verificar se o token foi armazenado",
+									"        pm.test('Token capturado e armazenado', function () {",
+									"            pm.expect(pm.environment.get('auth_token')).to.not.be.undefined;",
+									"            pm.expect(pm.environment.get('auth_token')).to.not.be.empty;",
+									"        });",
+									"    } else {",
+									"        console.log('Token não encontrado na resposta');",
+									"        pm.test('Token não encontrado na resposta', function () {",
+									"            pm.expect.fail('Token não encontrado na resposta JSON');",
+									"        });",
+									"    }",
+									"} else {",
+									"    console.log('Registro falhou com status:', pm.response.code);",
+									"    pm.test('Registro deve retornar status 200', function () {",
+									"        pm.expect(pm.response.code).to.equal(200);",
+									"    });",
+									"}"
+								]
+							}
+						}
+					],
 					"request": {
 						"method": "POST",
 						"header": [
@@ -79,6 +119,46 @@
 				},
 				{
 					"name": "Login User",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"// Verifica se a resposta foi bem-sucedida (status 200)",
+									"if (pm.response.code === 200) {",
+									"    // Parse do JSON da resposta",
+									"    const responseJson = pm.response.json();",
+									"    ",
+									"    // Verifica se o token existe na resposta",
+									"    if (responseJson.token) {",
+									"        // Armazena o token na variável de ambiente auth_token",
+									"        pm.environment.set('auth_token', responseJson.token);",
+									"        ",
+									"        // Log para confirmar que o token foi capturado",
+									"        console.log('Token capturado com sucesso:', responseJson.token);",
+									"        ",
+									"        // Teste para verificar se o token foi armazenado",
+									"        pm.test('Token capturado e armazenado', function () {",
+									"            pm.expect(pm.environment.get('auth_token')).to.not.be.undefined;",
+									"            pm.expect(pm.environment.get('auth_token')).to.not.be.empty;",
+									"        });",
+									"    } else {",
+									"        console.log('Token não encontrado na resposta');",
+									"        pm.test('Token não encontrado na resposta', function () {",
+									"            pm.expect.fail('Token não encontrado na resposta JSON');",
+									"        });",
+									"    }",
+									"} else {",
+									"    console.log('Login falhou com status:', pm.response.code);",
+									"    pm.test('Login deve retornar status 200', function () {",
+									"        pm.expect(pm.response.code).to.equal(200);",
+									"    });",
+									"}"
+								]
+							}
+						}
+					],
 					"request": {
 						"method": "POST",
 						"header": [

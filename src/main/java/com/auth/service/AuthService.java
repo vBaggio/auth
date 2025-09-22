@@ -5,10 +5,14 @@ import com.auth.dto.LoginRequest;
 import com.auth.dto.RegisterRequest;
 import com.auth.entity.Role;
 import com.auth.entity.User;
+import com.auth.exception.EmailAlreadyExistsException;
+import com.auth.exception.InvalidCredentialsException;
+import com.auth.exception.RoleNotFoundException;
 import com.auth.repository.RoleRepository;
 import com.auth.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -40,7 +44,7 @@ public class AuthService {
     
     public AuthResponse register(RegisterRequest request) {
         if (userRepository.existsByEmail(request.getEmail())) {
-            throw new RuntimeException("Email is already taken!");
+            throw new EmailAlreadyExistsException("Este email já está em uso");
         }
         
         // Create new user
@@ -52,7 +56,7 @@ public class AuthService {
         
         // Set default role
         Role defaultRole = roleRepository.findByName(Role.RoleName.DEFAULT)
-                .orElseThrow(() -> new RuntimeException("Default role not found"));
+                .orElseThrow(() -> new RoleNotFoundException("Função padrão não encontrada"));
         user.setRoles(Set.of(defaultRole));
         
         User savedUser = userRepository.save(user);
@@ -72,27 +76,31 @@ public class AuthService {
     }
     
     public AuthResponse login(LoginRequest request) {
-        Authentication authentication = authenticationManager.authenticate(
-            new UsernamePasswordAuthenticationToken(
-                request.getEmail(),
-                request.getPassword()
-            )
-        );
-        
-        SecurityContextHolder.getContext().setAuthentication(authentication);
-        
-        User user = (User) authentication.getPrincipal();
-        String token = jwtService.generateToken(user);
-        Date expirationDate = jwtService.getExpirationDate();
-        LocalDateTime expiresAt = expirationDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
-        
-        return new AuthResponse(
-            token,
-            user.getEmail(),
-            user.getFirstName(),
-            user.getLastName(),
-            expiresAt
-        );
+        try {
+            Authentication authentication = authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(
+                    request.getEmail(),
+                    request.getPassword()
+                )
+            );
+            
+            SecurityContextHolder.getContext().setAuthentication(authentication);
+            
+            User user = (User) authentication.getPrincipal();
+            String token = jwtService.generateToken(user);
+            Date expirationDate = jwtService.getExpirationDate();
+            LocalDateTime expiresAt = expirationDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
+            
+            return new AuthResponse(
+                token,
+                user.getEmail(),
+                user.getFirstName(),
+                user.getLastName(),
+                expiresAt
+            );
+        } catch (BadCredentialsException e) {
+            throw new InvalidCredentialsException("Credenciais inválidas");
+        }
     }
     
     public User getCurrentUser() {
