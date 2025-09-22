@@ -60,3 +60,7 @@ Thumbs.db
 # Spring Boot
 application-*.properties
 !application.properties
+
+# Docker
+.docker/
+docker-compose.override.yml
