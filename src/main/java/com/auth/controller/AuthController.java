@@ -1,8 +1,8 @@
 package com.auth.controller;
 
-import com.auth.dto.AuthResponse;
-import com.auth.dto.LoginRequest;
-import com.auth.dto.RegisterRequest;
+import com.auth.dto.AuthDTO;
+import com.auth.dto.LoginDTO;
+import com.auth.dto.RegisterDTO;
 import com.auth.service.AuthService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,16 +23,16 @@ public class AuthController {
     private AuthService authService;
     
     @PostMapping("/register")
-    public ResponseEntity<AuthResponse> register(@Valid @RequestBody RegisterRequest request) {
-        AuthResponse response = authService.register(request);
+    public ResponseEntity<AuthDTO> register(@Valid @RequestBody RegisterDTO request) {
+        AuthDTO response = authService.register(request);
         return ResponseEntity.ok(response);
     }
     
     @PostMapping("/login")
-    public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest request) {
-        logger.info("Login attempt for email: {}", request.getEmail());
-        AuthResponse response = authService.login(request);
-        logger.info("Login successful for email: {}", request.getEmail());
+    public ResponseEntity<AuthDTO> login(@Valid @RequestBody LoginDTO request) {
+        logger.info("Login attempt for email: {}", request.email());
+        AuthDTO response = authService.login(request);
+        logger.info("Login successful for email: {}", request.email());
         return ResponseEntity.ok(response);
     }
     

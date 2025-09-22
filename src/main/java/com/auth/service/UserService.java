@@ -1,54 +1,54 @@
 package com.auth.service;
 
-import com.auth.dto.UserResponse;
-import com.auth.entity.Role;
+import com.auth.dto.UserDTO;
 import com.auth.entity.User;
 import com.auth.exception.UserNotFoundException;
 import com.auth.repository.UserRepository;
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
-public class UserService {
+public class UserService implements UserDetailsService {
     
     @Autowired
     private UserRepository userRepository;
     
-    public List<UserResponse> getAllUsers() {
+    @Autowired
+    private ModelMapper modelMapper;
+    
+    @Override
+    @Transactional
+    public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UsernameNotFoundException("Usuário não encontrado"));
+        
+        return user;
+    }
+    
+    public List<UserDTO> getAllUsers() {
         return userRepository.findAll().stream()
-                .map(this::convertToUserResponse)
+                .map(user -> modelMapper.map(user, UserDTO.class))
                 .collect(Collectors.toList());
     }
     
-    public UserResponse getUserById(Long id) {
+    public UserDTO getUserById(Long id) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new UserNotFoundException("Usuário não encontrado com ID: " + id));
-        return convertToUserResponse(user);
+        return modelMapper.map(user, UserDTO.class);
     }
     
-    public UserResponse getUserByEmail(String email) {
+    public UserDTO getUserByEmail(String email) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new UserNotFoundException("Usuário não encontrado com email: " + email));
-        return convertToUserResponse(user);
+        return modelMapper.map(user, UserDTO.class);
     }
     
-    private UserResponse convertToUserResponse(User user) {
-        Set<Role.RoleName> roleNames = user.getRoles().stream()
-                .map(Role::getName)
-                .collect(Collectors.toSet());
-        
-        return new UserResponse(
-            user.getId(),
-            user.getEmail(),
-            user.getFirstName(),
-            user.getLastName(),
-            roleNames,
-            user.getCreatedAt(),
-            user.getUpdatedAt()
-        );
-    }
 }

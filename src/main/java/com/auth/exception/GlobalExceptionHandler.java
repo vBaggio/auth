@@ -1,6 +1,6 @@
 package com.auth.exception;
 
-import com.auth.dto.ErrorResponse;
+import com.auth.dto.ErrorDTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -23,10 +23,10 @@ public class GlobalExceptionHandler {
     private static final Logger logger = LoggerFactory.getLogger(GlobalExceptionHandler.class);
     
     @ExceptionHandler(EmailAlreadyExistsException.class)
-    public ResponseEntity<ErrorResponse> handleEmailAlreadyExists(EmailAlreadyExistsException ex, HttpServletRequest request) {
+    public ResponseEntity<ErrorDTO> handleEmailAlreadyExists(EmailAlreadyExistsException ex, HttpServletRequest request) {
         logger.warn("Email already exists: {}", ex.getMessage());
         
-        ErrorResponse errorResponse = new ErrorResponse(
+        ErrorDTO errorResponse = new ErrorDTO(
             "Este email já está em uso",
             ex.getErrorCode(),
             HttpStatus.CONFLICT.value(),
@@ -37,10 +37,10 @@ public class GlobalExceptionHandler {
     }
     
     @ExceptionHandler(UserNotFoundException.class)
-    public ResponseEntity<ErrorResponse> handleUserNotFound(UserNotFoundException ex, HttpServletRequest request) {
+    public ResponseEntity<ErrorDTO> handleUserNotFound(UserNotFoundException ex, HttpServletRequest request) {
         logger.warn("User not found: {}", ex.getMessage());
         
-        ErrorResponse errorResponse = new ErrorResponse(
+        ErrorDTO errorResponse = new ErrorDTO(
             "Usuário não encontrado",
             ex.getErrorCode(),
             HttpStatus.NOT_FOUND.value(),
@@ -51,10 +51,10 @@ public class GlobalExceptionHandler {
     }
     
     @ExceptionHandler(InvalidCredentialsException.class)
-    public ResponseEntity<ErrorResponse> handleInvalidCredentials(InvalidCredentialsException ex, HttpServletRequest request) {
+    public ResponseEntity<ErrorDTO> handleInvalidCredentials(InvalidCredentialsException ex, HttpServletRequest request) {
         logger.warn("Invalid credentials attempt: {}", ex.getMessage());
         
-        ErrorResponse errorResponse = new ErrorResponse(
+        ErrorDTO errorResponse = new ErrorDTO(
             "Credenciais inválidas",
             ex.getErrorCode(),
             HttpStatus.UNAUTHORIZED.value(),
@@ -65,10 +65,10 @@ public class GlobalExceptionHandler {
     }
     
     @ExceptionHandler(RoleNotFoundException.class)
-    public ResponseEntity<ErrorResponse> handleRoleNotFound(RoleNotFoundException ex, HttpServletRequest request) {
+    public ResponseEntity<ErrorDTO> handleRoleNotFound(RoleNotFoundException ex, HttpServletRequest request) {
         logger.error("Role not found: {}", ex.getMessage());
         
-        ErrorResponse errorResponse = new ErrorResponse(
+        ErrorDTO errorResponse = new ErrorDTO(
             "Erro interno do servidor",
             "INTERNAL_ERROR",
             HttpStatus.INTERNAL_SERVER_ERROR.value(),
@@ -79,10 +79,10 @@ public class GlobalExceptionHandler {
     }
     
     @ExceptionHandler(BadCredentialsException.class)
-    public ResponseEntity<ErrorResponse> handleBadCredentials(BadCredentialsException ex, HttpServletRequest request) {
+    public ResponseEntity<ErrorDTO> handleBadCredentials(BadCredentialsException ex, HttpServletRequest request) {
         logger.warn("Bad credentials attempt: {}", ex.getMessage());
         
-        ErrorResponse errorResponse = new ErrorResponse(
+        ErrorDTO errorResponse = new ErrorDTO(
             "Credenciais inválidas",
             "INVALID_CREDENTIALS",
             HttpStatus.UNAUTHORIZED.value(),
@@ -93,10 +93,10 @@ public class GlobalExceptionHandler {
     }
     
     @ExceptionHandler(AuthenticationException.class)
-    public ResponseEntity<ErrorResponse> handleAuthenticationException(AuthenticationException ex, HttpServletRequest request) {
+    public ResponseEntity<ErrorDTO> handleAuthenticationException(AuthenticationException ex, HttpServletRequest request) {
         logger.warn("Authentication failed: {}", ex.getMessage());
         
-        ErrorResponse errorResponse = new ErrorResponse(
+        ErrorDTO errorResponse = new ErrorDTO(
             "Falha na autenticação",
             "AUTHENTICATION_FAILED",
             HttpStatus.UNAUTHORIZED.value(),
@@ -107,10 +107,10 @@ public class GlobalExceptionHandler {
     }
     
     @ExceptionHandler(AccessDeniedException.class)
-    public ResponseEntity<ErrorResponse> handleAccessDenied(AccessDeniedException ex, HttpServletRequest request) {
+    public ResponseEntity<ErrorDTO> handleAccessDenied(AccessDeniedException ex, HttpServletRequest request) {
         logger.warn("Access denied: {}", ex.getMessage());
         
-        ErrorResponse errorResponse = new ErrorResponse(
+        ErrorDTO errorResponse = new ErrorDTO(
             "Acesso negado",
             "ACCESS_DENIED",
             HttpStatus.FORBIDDEN.value(),
@@ -121,7 +121,7 @@ public class GlobalExceptionHandler {
     }
     
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ErrorResponse> handleValidationExceptions(MethodArgumentNotValidException ex, HttpServletRequest request) {
+    public ResponseEntity<ErrorDTO> handleValidationExceptions(MethodArgumentNotValidException ex, HttpServletRequest request) {
         logger.warn("Validation error: {}", ex.getMessage());
         
         Map<String, String> errors = new HashMap<>();
@@ -131,7 +131,7 @@ public class GlobalExceptionHandler {
             errors.put(fieldName, errorMessage);
         });
         
-        ErrorResponse errorResponse = new ErrorResponse(
+        ErrorDTO errorResponse = new ErrorDTO(
             "Dados de entrada inválidos",
             "VALIDATION_ERROR",
             HttpStatus.BAD_REQUEST.value(),
@@ -142,10 +142,10 @@ public class GlobalExceptionHandler {
     }
     
     @ExceptionHandler(AuthException.class)
-    public ResponseEntity<ErrorResponse> handleAuthException(AuthException ex, HttpServletRequest request) {
+    public ResponseEntity<ErrorDTO> handleAuthException(AuthException ex, HttpServletRequest request) {
         logger.warn("Auth exception: {}", ex.getMessage());
         
-        ErrorResponse errorResponse = new ErrorResponse(
+        ErrorDTO errorResponse = new ErrorDTO(
             "Erro de autenticação",
             ex.getErrorCode(),
             HttpStatus.BAD_REQUEST.value(),
@@ -156,10 +156,10 @@ public class GlobalExceptionHandler {
     }
     
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<ErrorResponse> handleGenericException(Exception ex, HttpServletRequest request) {
+    public ResponseEntity<ErrorDTO> handleGenericException(Exception ex, HttpServletRequest request) {
         logger.error("Unexpected error occurred: {}", ex.getMessage(), ex);
         
-        ErrorResponse errorResponse = new ErrorResponse(
+        ErrorDTO errorResponse = new ErrorDTO(
             "Erro interno do servidor",
             "INTERNAL_ERROR",
             HttpStatus.INTERNAL_SERVER_ERROR.value(),

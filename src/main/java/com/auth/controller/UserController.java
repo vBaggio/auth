@@ -1,9 +1,10 @@
 package com.auth.controller;
 
-import com.auth.dto.UserResponse;
+import com.auth.dto.UserDTO;
 import com.auth.entity.User;
 import com.auth.service.AuthService;
 import com.auth.service.UserService;
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -22,28 +23,21 @@ public class UserController {
     @Autowired
     private AuthService authService;
     
+    @Autowired
+    private ModelMapper modelMapper;
+    
     @GetMapping
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<List<UserResponse>> getAllUsers() {
-        List<UserResponse> users = userService.getAllUsers();
+    public ResponseEntity<List<UserDTO>> getAllUsers() {
+        List<UserDTO> users = userService.getAllUsers();
         return ResponseEntity.ok(users);
     }
     
     @GetMapping("/me")
-    public ResponseEntity<UserResponse> getCurrentUser() {
+    public ResponseEntity<UserDTO> getCurrentUser() {
         User currentUser = authService.getCurrentUser();
         if (currentUser != null) {
-            UserResponse userResponse = new UserResponse(
-                currentUser.getId(),
-                currentUser.getEmail(),
-                currentUser.getFirstName(),
-                currentUser.getLastName(),
-                currentUser.getRoles().stream()
-                    .map(role -> role.getName())
-                    .collect(java.util.stream.Collectors.toSet()),
-                currentUser.getCreatedAt(),
-                currentUser.getUpdatedAt()
-            );
+            UserDTO userResponse = modelMapper.map(currentUser, UserDTO.class);
             return ResponseEntity.ok(userResponse);
         }
         return ResponseEntity.notFound().build();
@@ -51,15 +45,15 @@ public class UserController {
     
     @GetMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<UserResponse> getUserById(@PathVariable Long id) {
-        UserResponse user = userService.getUserById(id);
+    public ResponseEntity<UserDTO> getUserById(@PathVariable Long id) {
+        UserDTO user = userService.getUserById(id);
         return ResponseEntity.ok(user);
     }
     
     @GetMapping("/email/{email}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<UserResponse> getUserByEmail(@PathVariable String email) {
-        UserResponse user = userService.getUserByEmail(email);
+    public ResponseEntity<UserDTO> getUserByEmail(@PathVariable String email) {
+        UserDTO user = userService.getUserByEmail(email);
         return ResponseEntity.ok(user);
     }
 }
