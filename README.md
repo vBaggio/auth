@@ -240,7 +240,6 @@ src/main/java/com/auth/
 ├── AuthServiceApplication.java
 ├── config/
 │   ├── DataInitializer.java
-│   ├── EnvConfig.java
 │   └── SecurityConfig.java
 ├── controller/
 │   ├── AuthController.java
