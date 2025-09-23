@@ -13,6 +13,8 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import java.lang.reflect.InvocationTargetException;
+
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.HashMap;
 import java.util.Map;
@@ -148,6 +150,34 @@ public class GlobalExceptionHandler {
         ErrorDTO errorResponse = new ErrorDTO(
             "Erro de autenticação",
             ex.getErrorCode(),
+            HttpStatus.BAD_REQUEST.value(),
+            request.getRequestURI()
+        );
+        
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+    }
+    
+    @ExceptionHandler(InvocationTargetException.class)
+    public ResponseEntity<ErrorDTO> handleMapStructException(InvocationTargetException ex, HttpServletRequest request) {
+        logger.error("MapStruct mapping error occurred: {}", ex.getMessage(), ex);
+        
+        ErrorDTO errorResponse = new ErrorDTO(
+            "Erro de mapeamento de dados",
+            "MAPPING_ERROR",
+            HttpStatus.INTERNAL_SERVER_ERROR.value(),
+            request.getRequestURI()
+        );
+        
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
+    }
+    
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<ErrorDTO> handleIllegalArgumentException(IllegalArgumentException ex, HttpServletRequest request) {
+        logger.error("Illegal argument error occurred: {}", ex.getMessage(), ex);
+        
+        ErrorDTO errorResponse = new ErrorDTO(
+            "Argumento inválido",
+            "INVALID_ARGUMENT",
             HttpStatus.BAD_REQUEST.value(),
             request.getRequestURI()
         );

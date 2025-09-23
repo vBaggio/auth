@@ -8,9 +8,10 @@ import com.auth.entity.User;
 import com.auth.exception.EmailAlreadyExistsException;
 import com.auth.exception.InvalidCredentialsException;
 import com.auth.exception.RoleNotFoundException;
+import com.auth.mapper.AuthMapper;
+import com.auth.mapper.UserMapper;
 import com.auth.repository.RoleRepository;
 import com.auth.repository.UserRepository;
-import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -43,16 +44,13 @@ public class AuthService {
     @Autowired
     private AuthenticationManager authenticationManager;
     
-    @Autowired
-    private ModelMapper modelMapper;
-    
     public AuthDTO register(RegisterDTO request) {
         if (userRepository.existsByEmail(request.email())) {
             throw new EmailAlreadyExistsException("Este email já está em uso");
         }
         
-        // Create new user using ModelMapper
-        User user = modelMapper.map(request, User.class);
+        // Create new user using MapStruct
+        User user = UserMapper.INSTANCE.toEntity(request);
         user.setPassword(passwordEncoder.encode(request.password()));
         
         // Set default role
@@ -67,13 +65,7 @@ public class AuthService {
         Date expirationDate = jwtService.getExpirationDate();
         LocalDateTime expiresAt = expirationDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
         
-        return new AuthDTO(
-            token,
-            savedUser.getEmail(),
-            savedUser.getFirstName(),
-            savedUser.getLastName(),
-            expiresAt
-        );
+        return AuthMapper.toAuthDTO(savedUser, token, expiresAt);
     }
     
     public AuthDTO login(LoginDTO request) {
@@ -92,13 +84,7 @@ public class AuthService {
             Date expirationDate = jwtService.getExpirationDate();
             LocalDateTime expiresAt = expirationDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
             
-            return new AuthDTO(
-                token,
-                user.getEmail(),
-                user.getFirstName(),
-                user.getLastName(),
-                expiresAt
-            );
+            return AuthMapper.toAuthDTO(user, token, expiresAt);
         } catch (BadCredentialsException e) {
             throw new InvalidCredentialsException("Credenciais inválidas");
         }

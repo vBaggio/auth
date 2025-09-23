@@ -3,8 +3,8 @@ package com.auth.service;
 import com.auth.dto.UserDTO;
 import com.auth.entity.User;
 import com.auth.exception.UserNotFoundException;
+import com.auth.mapper.UserMapper;
 import com.auth.repository.UserRepository;
-import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -21,9 +21,6 @@ public class UserService implements UserDetailsService {
     @Autowired
     private UserRepository userRepository;
     
-    @Autowired
-    private ModelMapper modelMapper;
-    
     @Override
     @Transactional
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
@@ -34,21 +31,21 @@ public class UserService implements UserDetailsService {
     }
     
     public List<UserDTO> getAllUsers() {
-        return userRepository.findAll().stream()
-                .map(user -> modelMapper.map(user, UserDTO.class))
+        return userRepository.findAllWithRoles().stream()
+                .map(UserMapper.INSTANCE::toDto)
                 .collect(Collectors.toList());
     }
     
     public UserDTO getUserById(Long id) {
-        User user = userRepository.findById(id)
+        User user = userRepository.findByIdWithRoles(id)
                 .orElseThrow(() -> new UserNotFoundException("Usuário não encontrado com ID: " + id));
-        return modelMapper.map(user, UserDTO.class);
+        return UserMapper.INSTANCE.toDto(user);
     }
     
     public UserDTO getUserByEmail(String email) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new UserNotFoundException("Usuário não encontrado com email: " + email));
-        return modelMapper.map(user, UserDTO.class);
+        return UserMapper.INSTANCE.toDto(user);
     }
     
 }
