@@ -1,5 +1,6 @@
 package com.auth.controller;
 
+import com.auth.dto.RoleDTO;
 import com.auth.dto.UserDTO;
 import com.auth.entity.User;
 import com.auth.mapper.UserMapper;
@@ -18,6 +19,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Set;
 
 @RestController
 @RequestMapping("/api/users")
@@ -90,6 +92,23 @@ public class UserController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<UserDTO> getUserByEmail(@PathVariable String email) {
         UserDTO user = userService.getUserByEmail(email);
+        return ResponseEntity.ok(user);
+    }
+
+    @Operation(summary = "Adicionar uma ou mais roles ao usuário", description = "Adiciona uma ou mais roles ao usuário")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Roles adicionadas com sucesso",
+                content = @Content(schema = @Schema(implementation = UserDTO.class))),
+        @ApiResponse(responseCode = "404", description = "Usuário não encontrado"),
+        @ApiResponse(responseCode = "403", description = "Acesso negado - apenas ADMIN"),
+        @ApiResponse(responseCode = "401", description = "Token JWT inválido ou ausente"),
+        @ApiResponse(responseCode = "422", description = "Uma ou mais roles não encontradas")
+        
+    })
+    @PostMapping("/{id}/roles")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<UserDTO> addRolesToUser(@PathVariable Long id, @RequestBody Set<RoleDTO> roles) {
+        UserDTO user = userService.addRolesToUser(id, roles);
         return ResponseEntity.ok(user);
     }
 }

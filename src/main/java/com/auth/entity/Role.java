@@ -1,6 +1,8 @@
 package com.auth.entity;
 
 import jakarta.persistence.*;
+
+import java.util.Locale;
 import java.util.Set;
 
 @Entity
@@ -50,6 +52,17 @@ public class Role {
     }
     
     public enum RoleName {
-        ADMIN, DEFAULT
+        ADMIN, DEFAULT;
+
+        public static RoleName from(String value) {
+            if (value == null) {
+                throw new IllegalArgumentException("Role não pode ser nulo");
+            }
+            try {
+                return RoleName.valueOf(value.trim().toUpperCase(Locale.ROOT));
+            } catch (IllegalArgumentException ex) {
+                throw new IllegalArgumentException("Role inválido: " + value);
+            }
+        }
     }
 }
