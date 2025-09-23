@@ -1,16 +1,19 @@
-# Auth Service - Spring Boot 3.5
+# Auth Service - Spring Boot 3.5.6
 
-Sistema de autenticação e autorização robusto utilizando Spring Boot 3.5, Java 21, Spring Security 6, OAuth2 e JWT.
+Sistema de autenticação e autorização robusto utilizando Spring Boot 3.5.6, Java 21, Spring Security 6, OAuth2 e JWT.
 
 ## Tecnologias Utilizadas
 
 - **Java 21**
-- **Spring Boot 3.5**
+- **Spring Boot 3.5.6**
 - **Spring Security 6**
 - **OAuth2 Resource Server**
 - **JWT (JSON Web Tokens)**
 - **PostgreSQL**
 - **Spring Data JPA**
+- **Flyway** (migrações de banco)
+- **MapStruct** (mapeamento de DTOs)
+- **Swagger/OpenAPI (springdoc)**
 - **Maven**
 
 ## Funcionalidades
@@ -66,6 +69,13 @@ cp env.example .env
 # Execute o projeto
 mvn spring-boot:run
 ```
+
+### 4. Swagger (OpenAPI)
+
+- UI: acesse `http://localhost:8080/swagger-ui/index.html`
+- Documentos: `http://localhost:8080/v3/api-docs` (JSON)
+- As rotas do Swagger estão liberadas no `SecurityConfig`.
+- Para testar endpoints protegidos via Swagger UI: clique em "Authorize" e informe `Bearer <seu_token>`.
 
 ## Endpoints da API
 
@@ -215,10 +225,10 @@ O sistema implementa um tratamento seguro de erros que evita a exposição de in
 
 ## Usuário Admin Padrão
 
-O sistema cria automaticamente um usuário admin padrão:
+O sistema cria automaticamente um usuário admin padrão (via Flyway):
 
 - **Email:** admin@admin.com
-- **Senha:** S&cr3T#120
+- **Senha:** segredo123
 - **Role:** ADMIN
 
 ## Segurança
@@ -233,23 +243,50 @@ O sistema cria automaticamente um usuário admin padrão:
 - **Exceções customizadas** - Mensagens de erro padronizadas e seguras
 - **Logs seguros** - Informações sensíveis não são logadas
 
+## Swagger/OpenAPI
+
+- Dependência: `org.springdoc:springdoc-openapi-starter-webmvc-ui`
+- Configurações úteis em `application.properties`:
+
+```properties
+springdoc.swagger-ui.operationsSorter=method
+springdoc.swagger-ui.tagsSorter=alpha
+springdoc.swagger-ui.tryItOutEnabled=true
+springdoc.swagger-ui.filter=true
+springdoc.swagger-ui.display-request-duration=true
+springdoc.swagger-ui.display-operation-id=true
+```
+
+- Configuração adicional em `com.auth.config.SwaggerConfig` para metadados e esquema de segurança Bearer.
+- Endpoints liberados: `/swagger-ui/**`, `/swagger-ui.html`, `/v3/api-docs/**`, `/api-docs/**`.
+
+Veja mais detalhes em `SWAGGER.md`.
+
+## MapStruct
+
+- Usado para mapear entidades ↔ DTOs.
+- Mappers: `AuthMapper`, `UserMapper`, `RoleMapper` em `com.auth.mapper`.
+- Implementações geradas em tempo de compilação (ex.: `UserMapperImpl` em `target/generated-sources`).
+- Processador configurado no `maven-compiler-plugin`.
+
 ## Estrutura do Projeto
 
 ```
 src/main/java/com/auth/
 ├── AuthServiceApplication.java
 ├── config/
-│   ├── DataInitializer.java
-│   └── SecurityConfig.java
+│   ├── SecurityConfig.java
+│   └── SwaggerConfig.java
 ├── controller/
 │   ├── AuthController.java
 │   └── UserController.java
 ├── dto/
-│   ├── AuthResponse.java
-│   ├── ErrorResponse.java
-│   ├── LoginRequest.java
-│   ├── RegisterRequest.java
-│   └── UserResponse.java
+│   ├── AuthDTO.java
+│   ├── ErrorDTO.java
+│   ├── LoginDTO.java
+│   ├── RegisterDTO.java
+│   ├── RoleDTO.java
+│   └── UserDTO.java
 ├── entity/
 │   ├── Role.java
 │   └── User.java
@@ -260,6 +297,10 @@ src/main/java/com/auth/
 │   ├── InvalidCredentialsException.java
 │   ├── RoleNotFoundException.java
 │   └── UserNotFoundException.java
+├── mapper/
+│   ├── AuthMapper.java
+│   ├── RoleMapper.java
+│   └── UserMapper.java
 ├── repository/
 │   ├── RoleRepository.java
 │   └── UserRepository.java
@@ -268,7 +309,6 @@ src/main/java/com/auth/
 └── service/
     ├── AuthService.java
     ├── JwtService.java
-    ├── UserDetailsServiceImpl.java
     └── UserService.java
 ```
 
@@ -284,3 +324,10 @@ Para contribuir com o projeto:
 ## Licença
 
 Este projeto está sob a licença MIT.
+
+## Recursos Úteis
+
+- Documentação da API: `http://localhost:8080/swagger-ui/index.html`
+- Coleções Postman: `Auth-Service-Collection.postman_collection.json` e `Auth-Service-Environment.postman_environment.json`
+- Docker/PostgreSQL: veja `DOCKER.md`
+- Migrações de banco: veja `FLYWAY.md`
