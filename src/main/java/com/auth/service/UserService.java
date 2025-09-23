@@ -14,6 +14,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
@@ -30,7 +31,7 @@ public class UserService implements UserDetailsService {
     private RoleRepository roleRepository;
     
     @Override
-    @Transactional
+    @Transactional(readOnly = true)
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new UsernameNotFoundException("Usuário não encontrado"));
@@ -38,24 +39,28 @@ public class UserService implements UserDetailsService {
         return user;
     }
     
+    @Transactional(readOnly = true)
     public List<UserDTO> getAllUsers() {
         return userRepository.findAllWithRoles().stream()
                 .map(UserMapper.INSTANCE::toDto)
                 .collect(Collectors.toList());
     }
     
+    @Transactional(readOnly = true)
     public UserDTO getUserById(Long id) {
         User user = userRepository.findByIdWithRoles(id)
                 .orElseThrow(() -> new UserNotFoundException("Usuário não encontrado com ID: " + id));
         return UserMapper.INSTANCE.toDto(user);
     }
     
+    @Transactional(readOnly = true)
     public UserDTO getUserByEmail(String email) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new UserNotFoundException("Usuário não encontrado com email: " + email));
         return UserMapper.INSTANCE.toDto(user);
     }
 
+    @Transactional
     public UserDTO addRolesToUser(Long id, Set<RoleDTO> roles) {
         
         User user = userRepository.findByIdWithRoles(id)
@@ -83,6 +88,7 @@ public class UserService implements UserDetailsService {
         return UserMapper.INSTANCE.toDto(user);
     }
 
+    @Transactional(propagation = Propagation.SUPPORTS)
     public UserDTO removeRolesFromUser(Long id, Set<RoleDTO> roles) {
         User user = userRepository.findByIdWithRoles(id)
                 .orElseThrow(() -> new UserNotFoundException("Usuário não encontrado com ID: " + id));

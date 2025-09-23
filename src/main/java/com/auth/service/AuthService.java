@@ -20,6 +20,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -44,6 +45,7 @@ public class AuthService {
     @Autowired
     private AuthenticationManager authenticationManager;
     
+    @Transactional
     public AuthDTO register(RegisterDTO request) {
         if (userRepository.existsByEmail(request.email())) {
             throw new EmailAlreadyExistsException("Este email já está em uso");
@@ -68,6 +70,7 @@ public class AuthService {
         return AuthMapper.toAuthDTO(savedUser, token, expiresAt);
     }
     
+    @Transactional(readOnly = true)
     public AuthDTO login(LoginDTO request) {
         try {
             Authentication authentication = authenticationManager.authenticate(
