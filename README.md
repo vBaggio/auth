@@ -33,49 +33,107 @@ Sistema de autenticação e autorização robusto utilizando Spring Boot 3.5.6, 
 - **ADMIN**: Acesso total ao sistema
 - **DEFAULT**: Usuário padrão (apenas acesso aos próprios dados)
 
-## Configuração
+## Início Rápido
 
-### 1. Banco de Dados
-Crie um banco PostgreSQL e configure as variáveis no arquivo `.env`:
+### 1. Pré-requisitos
+- Java 21+
+- Maven 3.6+
+- Docker e Docker Compose (opcional)
 
-```env
-DB_HOST=localhost
-DB_PORT=5432
-DB_NAME=auth_db
-DB_USERNAME=postgres
-DB_PASSWORD=postgres
+### 2. Configuração do Banco de Dados
+
+#### Opção A: Docker (Recomendado)
+```bash
+# Subir o banco PostgreSQL
+docker-compose up -d postgres
+
+# Verificar se está funcionando
+docker-compose logs -f postgres
 ```
 
-### 2. JWT Secret
-Configure o secret para assinatura dos tokens JWT:
-
-```env
-JWT_SECRET=mySecretKey123456789012345678901234567890
-JWT_EXPIRATION=3600000
+**Personalização das Credenciais do Banco:**
+Para usar credenciais diferentes, edite o `docker-compose.yml`:
+```yaml
+environment:
+  POSTGRES_DB: seu_banco
+  POSTGRES_USER: seu_usuario
+  POSTGRES_PASSWORD: sua_senha
 ```
 
-### 3. Executar o Projeto
+E ajuste o `application.properties`:
+```properties
+spring.datasource.url=jdbc:postgresql://localhost:5432/seu_banco
+spring.datasource.username=seu_usuario
+spring.datasource.password=sua_senha
+```
+
+#### Opção B: PostgreSQL Local
+Crie um banco PostgreSQL e configure as credenciais no `application.properties`:
+```properties
+spring.datasource.url=jdbc:postgresql://localhost:5432/seu_banco
+spring.datasource.username=seu_usuario
+spring.datasource.password=sua_senha
+```
+
+### 3. Configuração do Projeto
+
+#### Configuração Principal
+O projeto usa `application.properties` como configuração principal. Os valores padrão são:
+
+```properties
+# Database Configuration (valores padrão)
+spring.datasource.url=jdbc:postgresql://localhost:5432/auth
+spring.datasource.username=postgres
+spring.datasource.password=postgres
+
+# JWT Configuration (valores padrão)
+app.jwt.secret=123456789012345678901234567890123456789012345678901234567890
+app.jwt.expiration=3600000
+```
+
+#### Personalização via Variáveis de Ambiente
+Para sobrescrever os valores padrão, use variáveis de ambiente do sistema:
+
+```bash
+# Windows (PowerShell)
+$env:DB_HOST="localhost"
+$env:DB_PORT="5432"
+$env:DB_NAME="auth"
+$env:DB_USERNAME="postgres"
+$env:DB_PASSWORD="postgres"
+$env:JWT_SECRET_KEY="mySecretKey123456789012345678901234567890"
+$env:JWT_EXPIRATION="3600000"
+$env:SERVER_PORT="8080"
+
+# Linux/Mac
+export DB_HOST=localhost
+export DB_PORT=5432
+export DB_NAME=auth
+export DB_USERNAME=postgres
+export DB_PASSWORD=postgres
+export JWT_SECRET_KEY=mySecretKey123456789012345678901234567890
+export JWT_EXPIRATION=3600000
+export SERVER_PORT=8080
+```
+
+**Nota:** Se as variáveis de ambiente não forem definidas, o projeto usará os valores padrão do `application.properties`.
+
+### 4. Executar o Projeto
 
 ```bash
 # Clone o repositório
 git clone https://github.com/vBaggio/auth.git
 cd auth
 
-# Copie o arquivo de exemplo
-cp env.example .env
-
-# Configure as variáveis no .env
-
 # Execute o projeto
 mvn spring-boot:run
 ```
 
-### 4. Swagger (OpenAPI)
+### 5. Verificar Funcionamento
 
-- UI: acesse `http://localhost:8080/swagger-ui/index.html`
-- Documentos: `http://localhost:8080/v3/api-docs` (JSON)
-- As rotas do Swagger estão liberadas no `SecurityConfig`.
-- Para testar endpoints protegidos via Swagger UI: clique em "Authorize" e informe `Bearer <seu_token>`.
+- **API:** `http://localhost:8080`
+- **Swagger UI:** `http://localhost:8080/swagger-ui/index.html`
+- **Health Check:** `http://localhost:8080/actuator/health`
 
 ## Endpoints da API
 
@@ -163,6 +221,14 @@ Retorna dados de um usuário por email (apenas ADMIN).
 Authorization: Bearer <admin_token>
 ```
 
+## Usuário Admin Padrão
+
+O sistema cria automaticamente um usuário admin padrão (via Flyway):
+
+- **Email:** admin@admin.com
+- **Senha:** segredo123
+- **Role:** ADMIN
+
 ## Tratamento de Erros
 
 O sistema implementa um tratamento seguro de erros que evita a exposição de informações sensíveis:
@@ -223,51 +289,66 @@ O sistema implementa um tratamento seguro de erros que evita a exposição de in
 }
 ```
 
-## Usuário Admin Padrão
+## Documentação da API
 
-O sistema cria automaticamente um usuário admin padrão (via Flyway):
+### Swagger/OpenAPI
 
-- **Email:** admin@admin.com
-- **Senha:** segredo123
-- **Role:** ADMIN
+O projeto utiliza `springdoc-openapi` para documentação automática da API:
+
+#### Acesso
+- **UI:** `http://localhost:8080/swagger-ui/index.html`
+- **OpenAPI JSON:** `http://localhost:8080/v3/api-docs`
+
+#### Autenticação
+- Clique em "Authorize" na UI do Swagger
+- Informe: `Bearer <seu_token_jwt>`
+- O esquema de segurança Bearer (JWT) é configurado em `SwaggerConfig`
+
+## Migrações de Banco
+
+### Flyway
+
+O projeto utiliza Flyway para versionamento e migração do banco de dados:
+
+#### Configuração
+- **Localização dos scripts:** `src/main/resources/db/migration/`
+- **Convenção de nomenclatura:** `V{versão}__{descrição}.sql`
+- **Scripts disponíveis:**
+  - `V1__Create_initial_tables.sql` - Criação das tabelas iniciais
+  - `V2__Insert_initial_data.sql` - Inserção dos dados iniciais
+
+#### Comandos Úteis
+```bash
+# Verificar status das migrações
+mvn flyway:info
+
+# Executar migrações manualmente
+mvn flyway:migrate
+
+# Validar migrações
+mvn flyway:validate
+```
 
 ## Segurança
 
-- Tokens JWT com validade de 60 minutos
-- Senhas criptografadas com BCrypt
-- CORS configurado para localhost
-- Validação de entrada com Bean Validation
-- Controle de acesso baseado em roles
+- **Tokens JWT** com validade de 60 minutos (configurável)
+- **Senhas criptografadas** com BCrypt (cost 10)
+- **CORS configurado** para localhost:3000 e localhost:8080
+- **Validação de entrada** com Bean Validation
+- **Controle de acesso** baseado em roles
 - **Tratamento seguro de erros** - Não exposição de informações sensíveis
 - **Global Exception Handler** - Tratamento centralizado de exceções
 - **Exceções customizadas** - Mensagens de erro padronizadas e seguras
 - **Logs seguros** - Informações sensíveis não são logadas
 
-## Swagger/OpenAPI
+## Mapeamento de Dados
 
-- Dependência: `org.springdoc:springdoc-openapi-starter-webmvc-ui`
-- Configurações úteis em `application.properties`:
+### MapStruct
 
-```properties
-springdoc.swagger-ui.operationsSorter=method
-springdoc.swagger-ui.tagsSorter=alpha
-springdoc.swagger-ui.tryItOutEnabled=true
-springdoc.swagger-ui.filter=true
-springdoc.swagger-ui.display-request-duration=true
-springdoc.swagger-ui.display-operation-id=true
-```
-
-- Configuração adicional em `com.auth.config.SwaggerConfig` para metadados e esquema de segurança Bearer.
-- Endpoints liberados: `/swagger-ui/**`, `/swagger-ui.html`, `/v3/api-docs/**`, `/api-docs/**`.
-
-Veja mais detalhes em `SWAGGER.md`.
-
-## MapStruct
-
-- Usado para mapear entidades ↔ DTOs.
-- Mappers: `AuthMapper`, `UserMapper`, `RoleMapper` em `com.auth.mapper`.
-- Implementações geradas em tempo de compilação (ex.: `UserMapperImpl` em `target/generated-sources`).
-- Processador configurado no `maven-compiler-plugin`.
+- **Usado para mapear** entidades ↔ DTOs
+- **Mappers:** `AuthMapper`, `UserMapper`, `RoleMapper` em `com.auth.mapper`
+- **Implementações geradas** em tempo de compilação (ex.: `UserMapperImpl` em `target/generated-sources`)
+- **Processador configurado** no `maven-compiler-plugin`
 
 ## Estrutura do Projeto
 
@@ -312,6 +393,30 @@ src/main/java/com/auth/
     └── UserService.java
 ```
 
+## Docker
+
+### Comandos Úteis
+
+```bash
+# Subir o banco de dados
+docker-compose up -d postgres
+
+# Ver logs
+docker-compose logs -f postgres
+
+# Parar o banco
+docker-compose down
+
+# Resetar banco (remove dados)
+docker-compose down -v
+```
+
+### Configurações do Container
+- **Imagem:** postgres:15-alpine
+- **Porta:** 5432
+- **Volume:** postgres_data (dados persistentes)
+- **Health Check:** Configurado para verificar disponibilidade
+
 ## Desenvolvimento
 
 Para contribuir com o projeto:
@@ -321,13 +426,11 @@ Para contribuir com o projeto:
 3. Faça commit das mudanças
 4. Abra um Pull Request
 
+## Recursos Úteis
+
+- **Documentação da API:** `http://localhost:8080/swagger-ui/index.html`
+- **Coleções Postman:** `Auth-Service-Collection.postman_collection.json` e `Auth-Service-Environment.postman_environment.json`
+
 ## Licença
 
 Este projeto está sob a licença MIT.
-
-## Recursos Úteis
-
-- Documentação da API: `http://localhost:8080/swagger-ui/index.html`
-- Coleções Postman: `Auth-Service-Collection.postman_collection.json` e `Auth-Service-Environment.postman_environment.json`
-- Docker/PostgreSQL: veja `DOCKER.md`
-- Migrações de banco: veja `FLYWAY.md`
