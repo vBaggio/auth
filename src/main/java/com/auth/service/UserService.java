@@ -9,12 +9,10 @@ import com.auth.exception.UserNotFoundException;
 import com.auth.mapper.UserMapper;
 import com.auth.repository.RoleRepository;
 import com.auth.repository.UserRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
@@ -24,32 +22,33 @@ import java.util.stream.Collectors;
 @Service
 public class UserService implements UserDetailsService {
     
-    @Autowired
-    private UserRepository userRepository;
+    private static final String USER_NOT_FOUND_BY_ID = "Usuário não encontrado com ID: ";
+    
+    private final UserRepository userRepository;
+    private final RoleRepository roleRepository;
 
-    @Autowired
-    private RoleRepository roleRepository;
+    public UserService(UserRepository userRepository, RoleRepository roleRepository) {
+        this.userRepository = userRepository;
+        this.roleRepository = roleRepository;
+    }
     
     @Override
     @Transactional(readOnly = true)
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-        User user = userRepository.findByEmail(email)
+        return userRepository.findByEmail(email)
                 .orElseThrow(() -> new UsernameNotFoundException("Usuário não encontrado"));
-        
-        return user;
     }
     
     @Transactional(readOnly = true)
     public List<UserDTO> getAllUsers() {
         return userRepository.findAllWithRoles().stream()
                 .map(UserMapper.INSTANCE::toDto)
-                .collect(Collectors.toList());
+                .toList();
     }
-    
     @Transactional(readOnly = true)
     public UserDTO getUserById(Long id) {
         User user = userRepository.findByIdWithRoles(id)
-                .orElseThrow(() -> new UserNotFoundException("Usuário não encontrado com ID: " + id));
+                .orElseThrow(() -> new UserNotFoundException(USER_NOT_FOUND_BY_ID + id));
         return UserMapper.INSTANCE.toDto(user);
     }
     
@@ -64,7 +63,7 @@ public class UserService implements UserDetailsService {
     public UserDTO addRolesToUser(Long id, Set<RoleDTO> roles) {
         
         User user = userRepository.findByIdWithRoles(id)
-                .orElseThrow(() -> new UserNotFoundException("Usuário não encontrado com ID: " + id));
+                .orElseThrow(() -> new UserNotFoundException(USER_NOT_FOUND_BY_ID + id));
 
         Set<Role.RoleName> roleNames = roles.stream().map(RoleDTO::name).map(Role.RoleName::from).collect(Collectors.toSet());
 
@@ -88,10 +87,10 @@ public class UserService implements UserDetailsService {
         return UserMapper.INSTANCE.toDto(user);
     }
 
-    @Transactional(propagation = Propagation.SUPPORTS)
+    @Transactional
     public UserDTO removeRolesFromUser(Long id, Set<RoleDTO> roles) {
         User user = userRepository.findByIdWithRoles(id)
-                .orElseThrow(() -> new UserNotFoundException("Usuário não encontrado com ID: " + id));
+                .orElseThrow(() -> new UserNotFoundException(USER_NOT_FOUND_BY_ID + id));
 
         Set<Role.RoleName> roleNames = roles.stream()
                 .map(RoleDTO::name)

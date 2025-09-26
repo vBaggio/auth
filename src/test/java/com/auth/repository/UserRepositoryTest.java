@@ -13,14 +13,13 @@ import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
 
 import com.auth.config.NoFlywayTestConfig;
-import com.auth.config.RepositoryTestConfig;
 import com.auth.entity.Role;
 import com.auth.entity.User;
 
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @DisplayName("UserRepository - Testes Unitários")
-@Import({RepositoryTestConfig.class, NoFlywayTestConfig.class})
+@Import(NoFlywayTestConfig.class)
 @ActiveProfiles("test")
 class UserRepositoryTest {
     
