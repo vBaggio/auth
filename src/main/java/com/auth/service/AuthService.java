@@ -12,7 +12,6 @@ import com.auth.mapper.AuthMapper;
 import com.auth.mapper.UserMapper;
 import com.auth.repository.RoleRepository;
 import com.auth.repository.UserRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -30,20 +29,23 @@ import java.util.Set;
 @Service
 public class AuthService {
     
-    @Autowired
-    private UserRepository userRepository;
-    
-    @Autowired
-    private RoleRepository roleRepository;
-    
-    @Autowired
-    private PasswordEncoder passwordEncoder;
-    
-    @Autowired
-    private JwtService jwtService;
-    
-    @Autowired
-    private AuthenticationManager authenticationManager;
+    private final UserRepository userRepository;
+    private final RoleRepository roleRepository;
+    private final PasswordEncoder passwordEncoder;
+    private final JwtService jwtService;
+    private final AuthenticationManager authenticationManager;
+
+    public AuthService(UserRepository userRepository, 
+                      RoleRepository roleRepository,
+                      PasswordEncoder passwordEncoder,
+                      JwtService jwtService,
+                      AuthenticationManager authenticationManager) {
+        this.userRepository = userRepository;
+        this.roleRepository = roleRepository;
+        this.passwordEncoder = passwordEncoder;
+        this.jwtService = jwtService;
+        this.authenticationManager = authenticationManager;
+    }
     
     @Transactional
     public AuthDTO register(RegisterDTO request) {
