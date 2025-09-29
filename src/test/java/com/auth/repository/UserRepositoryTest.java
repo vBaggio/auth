@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Set;
 
 import org.assertj.core.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,25 +30,39 @@ class UserRepositoryTest {
     @Autowired 
     private RoleRepository roleRepository;
 
-    @Test
-    void testExistsByEmail() {
-        userRepository.save(new User("test@example.com", "password", "First", "Last"));
-        Assertions.assertThat(userRepository.existsByEmail("test@example.com")).isTrue();
+    private Role adminRole;
+    private Role defaultRole;
+    private User testUser;
+
+    private final String testEmail = "test@example.com";
+    private final String adminEmail = "adminuser@example.com";
+    private final String defaultEmail = "defaultuser@example.com";
+    private final String password = "password";
+    private final String firstName = "First";
+    private final String lastName = "Last";
+
+    @BeforeEach
+    void setUp() {
+        adminRole = roleRepository.save(new Role(Role.RoleName.ADMIN));
+        defaultRole = roleRepository.save(new Role(Role.RoleName.DEFAULT));
+        testUser = new User(testEmail, password, firstName, lastName);
     }
 
     @Test
-    void testfindAllWithRoles() {
-        Role adminRole = new Role(Role.RoleName.ADMIN);
-        Role defaultRole = new Role(Role.RoleName.DEFAULT);
-        
-        adminRole = roleRepository.save(adminRole);
-        defaultRole = roleRepository.save(defaultRole);
+    @DisplayName("Deve retornar verdadeiro quando email existe")
+    void testExistsByEmail() {
+        userRepository.save(testUser);
+        Assertions.assertThat(userRepository.existsByEmail(testEmail)).isTrue();
+    }
 
-        User user1 = new User("adminuser@example.com", "password", "Role", "User");
+    @Test
+    @DisplayName("Deve recuperar todos os usuários com suas roles")
+    void testfindAllWithRoles() {
+        User user1 = new User(adminEmail, password, "Role", "User");
         user1.addRole(adminRole);
         userRepository.save(user1);
 
-        User user2 = new User("defaultuser@example.com", "password2", "Role2", "User2");
+        User user2 = new User(defaultEmail, "password2", "Role2", "User2");
         user2.addRole(defaultRole);
         userRepository.save(user2);
 
@@ -56,14 +71,14 @@ class UserRepositoryTest {
         Assertions.assertThat(users).isNotNull().isNotEmpty().hasSize(2);
 
         User foundAdmin = users.stream()
-            .filter(u -> u.getEmail().equals("adminuser@example.com"))
+            .filter(u -> u.getEmail().equals(adminEmail))
             .findFirst()
             .orElseThrow(() -> new AssertionError("adminuser@example.com not found"));
         Assertions.assertThat(foundAdmin.getRoles()).isNotNull().isNotEmpty();
         Assertions.assertThat(foundAdmin.getRoles().stream().map(Role::getName)).contains(Role.RoleName.ADMIN);
 
         User foundDefault = users.stream()
-            .filter(u -> u.getEmail().equals("defaultuser@example.com"))
+            .filter(u -> u.getEmail().equals(defaultEmail))
             .findFirst()
             .orElseThrow(() -> new AssertionError("defaultuser@example.com not found"));
         Assertions.assertThat(foundDefault.getRoles()).isNotNull().isNotEmpty();
@@ -71,24 +86,21 @@ class UserRepositoryTest {
     }
 
     @Test
+    @DisplayName("Deve encontrar usuário por email")
     void testFindByEmail() {
-        var email = "test@example.com";
-        userRepository.save(new User(email, "password", "First", "Last"));
+        userRepository.save(testUser);
 
-        var foundUser = userRepository.findByEmail(email);
+        var foundUser = userRepository.findByEmail(testEmail);
 
         Assertions.assertThat(foundUser).isPresent();
-        Assertions.assertThat(foundUser.get().getEmail()).isEqualTo(email);
+        Assertions.assertThat(foundUser.get().getEmail()).isEqualTo(testEmail);
     }
 
     @Test
+    @DisplayName("Deve encontrar usuário por id com suas roles")
     void testFindByIdWithRoles() {
-        Role adminRole = roleRepository.save(new Role(Role.RoleName.ADMIN));
-        Role defaultRole = roleRepository.save(new Role(Role.RoleName.DEFAULT));
-        
-        User user = new User("test@example.com", "password", "First", "Last");
-        user.setRoles(Set.of(adminRole, defaultRole));
-        user = userRepository.save(user);
+        testUser.setRoles(Set.of(adminRole, defaultRole));
+        User user = userRepository.save(testUser);
 
         Assertions.assertThat(user.getId()).isNotNull();
 
