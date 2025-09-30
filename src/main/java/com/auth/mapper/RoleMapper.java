@@ -3,12 +3,16 @@ package com.auth.mapper;
 import com.auth.dto.RoleDTO;
 import com.auth.entity.Role;
 
-public class RoleMapper {
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import org.mapstruct.ReportingPolicy;
+import org.mapstruct.factory.Mappers;
 
-    public static RoleDTO toDto(Role role) {
-        if (role == null) {
-            return null;
-        }
-        return new RoleDTO(role.getName().name());
-    }
+@Mapper(unmappedTargetPolicy = ReportingPolicy.IGNORE)
+public interface RoleMapper {
+
+    RoleMapper INSTANCE = Mappers.getMapper(RoleMapper.class);
+
+    @Mapping(target = "name", expression = "java(role.getName().name())")
+    RoleDTO toDto(Role role);
 }

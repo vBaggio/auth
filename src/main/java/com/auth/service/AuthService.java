@@ -68,8 +68,8 @@ public class AuthService {
         String token = jwtService.generateToken(savedUser);
         Date expirationDate = jwtService.getExpirationDate();
         LocalDateTime expiresAt = expirationDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
-        
-        return AuthMapper.toAuthDTO(savedUser, token, expiresAt);
+
+        return AuthMapper.INSTANCE.toAuthDTO(savedUser, token, expiresAt);
     }
     
     @Transactional(readOnly = true)
@@ -88,8 +88,8 @@ public class AuthService {
             String token = jwtService.generateToken(user);
             Date expirationDate = jwtService.getExpirationDate();
             LocalDateTime expiresAt = expirationDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
-            
-            return AuthMapper.toAuthDTO(user, token, expiresAt);
+
+            return AuthMapper.INSTANCE.toAuthDTO(user, token, expiresAt);
         } catch (BadCredentialsException e) {
             throw new InvalidCredentialsException("Credenciais inválidas");
         }
@@ -97,8 +97,8 @@ public class AuthService {
     
     public User getCurrentUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication != null && authentication.getPrincipal() instanceof User) {
-            return (User) authentication.getPrincipal();
+        if (authentication != null && authentication.getPrincipal() instanceof User user) {
+            return user;
         }
         return null;
     }
