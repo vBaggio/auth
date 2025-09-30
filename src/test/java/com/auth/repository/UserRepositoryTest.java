@@ -19,7 +19,7 @@ import com.auth.entity.User;
 
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
-@DisplayName("UserRepository - Testes Unitários")
+@DisplayName("UserRepository - Unit Tests")
 @Import(NoFlywayTestConfig.class)
 @ActiveProfiles("test")
 class UserRepositoryTest {
@@ -49,15 +49,15 @@ class UserRepositoryTest {
     }
 
     @Test
-    @DisplayName("Deve retornar verdadeiro quando email existe")
-    void testExistsByEmail() {
+    @DisplayName("Should return true when email exists")
+    void shouldReturnTrueWhenEmailExists() {
         userRepository.save(testUser);
         Assertions.assertThat(userRepository.existsByEmail(testEmail)).isTrue();
     }
 
     @Test
-    @DisplayName("Deve recuperar todos os usuários com suas roles")
-    void testfindAllWithRoles() {
+    @DisplayName("Should retrieve all users with their roles")
+    void shouldReturnAllUsersWithRoles() {
         User user1 = new User(adminEmail, password, "Role", "User");
         user1.addRole(adminRole);
         userRepository.save(user1);
@@ -86,8 +86,8 @@ class UserRepositoryTest {
     }
 
     @Test
-    @DisplayName("Deve encontrar usuário por email")
-    void testFindByEmail() {
+    @DisplayName("Should find user by email")
+    void shouldReturnUserByEmail() {
         userRepository.save(testUser);
 
         var foundUser = userRepository.findByEmail(testEmail);
@@ -97,8 +97,8 @@ class UserRepositoryTest {
     }
 
     @Test
-    @DisplayName("Deve encontrar usuário por id com suas roles")
-    void testFindByIdWithRoles() {
+    @DisplayName("Should find user by id with their roles")
+    void shouldReturnUserByIdWithRoles() {
         testUser.setRoles(Set.of(adminRole, defaultRole));
         User user = userRepository.save(testUser);
 

@@ -14,14 +14,7 @@ import java.util.Map;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-/**
- * Testes unitários para {@link JwtService}.
- *
- * Segue o mesmo padrão utilizado nos demais testes do módulo, com foco
- * na clareza dos cenários e na validação das regras principais de geração e
- * validação de tokens JWT.
- */
-@DisplayName("JwtService - Testes Unitários")
+@DisplayName("JwtService - Unit Tests")
 class JwtServiceTest {
 
     private static final String SECRET = "12345678901234567890123456789012";
@@ -32,7 +25,7 @@ class JwtServiceTest {
 
     @BeforeEach
     void setUp() {
-    jwtService = new com.auth.service.JwtService();
+        jwtService = new com.auth.service.JwtService();
         ReflectionTestUtils.setField(jwtService, "secret", SECRET);
         ReflectionTestUtils.setField(jwtService, "expiration", EXPIRATION);
 
@@ -44,24 +37,24 @@ class JwtServiceTest {
     }
 
     @Test
-    @DisplayName("Deve gerar token válido com claims extras")
-    void deveGerarTokenValidoComClaimsExtras() {
+    @DisplayName("Should return a valid token with extra claims")
+    void shouldReturnValidTokenWithExtraClaims() {
         Map<String, Object> extraClaims = Map.of("role", "USER");
 
         String token = jwtService.generateToken(userDetails, extraClaims);
 
         assertThat(token).isNotBlank();
         assertThat(jwtService.extractUsername(token)).isEqualTo(userDetails.getUsername());
-    String roleClaim = jwtService.extractClaim(token, claims -> claims.get("role", String.class));
-    assertThat(roleClaim).isEqualTo("USER");
+        String roleClaim = jwtService.extractClaim(token, claims -> claims.get("role", String.class));
+        assertThat(roleClaim).isEqualTo("USER");
 
         Date expirationDate = jwtService.extractExpiration(token);
         assertThat(expirationDate).isAfter(new Date());
     }
 
     @Test
-    @DisplayName("Deve validar token para usuário correspondente")
-    void deveValidarTokenParaUsuarioCorrespondente() {
+    @DisplayName("Should return true when token belongs to user")
+    void shouldReturnTrueWhenTokenBelongsToUser() {
         String token = jwtService.generateToken(userDetails);
 
         assertThat(jwtService.validateToken(token, userDetails)).isTrue();
@@ -69,9 +62,9 @@ class JwtServiceTest {
     }
 
     @Test
-    @DisplayName("Deve lançar exceção ao validar token expirado")
-    void deveLancarExcecaoAoValidarTokenExpirado() {
-    com.auth.service.JwtService expiredJwtService = new com.auth.service.JwtService();
+    @DisplayName("Should throw exception when validating expired token")
+    void shouldThrowExceptionWhenValidatingExpiredToken() {
+        com.auth.service.JwtService expiredJwtService = new com.auth.service.JwtService();
         ReflectionTestUtils.setField(expiredJwtService, "secret", SECRET);
         ReflectionTestUtils.setField(expiredJwtService, "expiration", -1_000L);
 
@@ -83,8 +76,8 @@ class JwtServiceTest {
     }
 
     @Test
-    @DisplayName("Deve retornar falso quando token é inválido ou corrompido")
-    void deveRetornarFalsoQuandoTokenEInvalidoOuCorrompido() {
+    @DisplayName("Should return false when token is invalid or corrupted")
+    void shouldReturnFalseWhenTokenIsInvalidOrCorrupted() {
         String tokenValido = jwtService.generateToken(userDetails);
         String tokenCorrompido = tokenValido.substring(0, tokenValido.length() - 5) + "abcde";
 
@@ -92,8 +85,8 @@ class JwtServiceTest {
     }
 
     @Test
-    @DisplayName("Deve calcular data de expiração futura")
-    void deveCalcularDataDeExpiracaoFutura() {
+    @DisplayName("Should return a future expiration date")
+    void shouldReturnFutureExpirationDate() {
         Date expirationDate = jwtService.getExpirationDate();
 
         long diff = expirationDate.getTime() - System.currentTimeMillis();

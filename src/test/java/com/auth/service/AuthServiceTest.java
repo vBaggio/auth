@@ -35,7 +35,7 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-@DisplayName("AuthService - Testes Unitários")
+@DisplayName("AuthService - Unit Tests")
 class AuthServiceTest {
 
     @Mock
@@ -85,8 +85,8 @@ class AuthServiceTest {
     }
 
     @Test
-    @DisplayName("Deve registrar usuário com sucesso quando email não existe")
-    void deveRegistrarUsuarioComSucesso() {
+    @DisplayName("Should return AuthDTO when registering user successfully")
+    void shouldReturnAuthDtoWhenRegisteringUserSuccessfully() {
         String token = "jwt-token-123";
         Date expirationDate = new Date(System.currentTimeMillis() + 3600000);
         LocalDateTime expiresAt = expirationDate.toInstant().atZone(java.time.ZoneId.systemDefault()).toLocalDateTime();
@@ -114,8 +114,8 @@ class AuthServiceTest {
     }
 
     @Test
-    @DisplayName("Deve lançar exceção quando email já existe no registro")
-    void deveLancarExcecaoQuandoEmailJaExiste() {
+    @DisplayName("Should throw exception when email already exists")
+    void shouldThrowExceptionWhenEmailAlreadyExists() {
         when(userRepository.existsByEmail("joao@email.com")).thenReturn(true);
 
         assertThatThrownBy(() -> authService.register(registerDTO))
@@ -127,8 +127,8 @@ class AuthServiceTest {
     }
 
     @Test
-    @DisplayName("Deve lançar exceção quando role padrão não é encontrada")
-    void deveLancarExcecaoQuandoRolePadraoNaoExiste() {
+    @DisplayName("Should throw exception when default role is not found")
+    void shouldThrowExceptionWhenDefaultRoleNotFound() {
         when(userRepository.existsByEmail("joao@email.com")).thenReturn(false);
         when(roleRepository.findByName(Role.RoleName.DEFAULT)).thenReturn(Optional.empty());
 
@@ -142,8 +142,8 @@ class AuthServiceTest {
     }
 
     @Test
-    @DisplayName("Deve fazer login com sucesso quando credenciais são válidas")
-    void deveFazerLoginComSucesso() {
+    @DisplayName("Should return AuthDTO when credentials are valid")
+    void shouldReturnAuthDtoWhenCredentialsAreValid() {
         String token = "jwt-token-123";
         Date expirationDate = new Date(System.currentTimeMillis() + 3600000);
         LocalDateTime expiresAt = expirationDate.toInstant().atZone(java.time.ZoneId.systemDefault()).toLocalDateTime();
@@ -168,8 +168,8 @@ class AuthServiceTest {
     }
 
     @Test
-    @DisplayName("Deve lançar exceção quando credenciais são inválidas")
-    void deveLancarExcecaoQuandoCredenciaisSaoInvalidas() {
+    @DisplayName("Should throw exception when credentials are invalid")
+    void shouldThrowExceptionWhenCredentialsAreInvalid() {
         when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class)))
                 .thenThrow(new BadCredentialsException("Credenciais inválidas"));
 
@@ -182,8 +182,8 @@ class AuthServiceTest {
     }
 
     @Test
-    @DisplayName("Deve retornar usuário atual quando autenticado")
-    void deveRetornarUsuarioAtualQuandoAutenticado() {
+    @DisplayName("Should return current user when authenticated")
+    void shouldReturnCurrentUserWhenAuthenticated() {
         when(securityContext.getAuthentication()).thenReturn(authentication);
         when(authentication.getPrincipal()).thenReturn(testUser);
         SecurityContextHolder.setContext(securityContext);
@@ -195,8 +195,8 @@ class AuthServiceTest {
     }
 
     @Test
-    @DisplayName("Deve retornar null quando usuário não está autenticado")
-    void deveRetornarNullQuandoUsuarioNaoAutenticado() {
+    @DisplayName("Should return null when user is not authenticated")
+    void shouldReturnNullWhenUserIsNotAuthenticated() {
         when(securityContext.getAuthentication()).thenReturn(null);
         SecurityContextHolder.setContext(securityContext);
 
