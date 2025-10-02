@@ -104,14 +104,12 @@ public class UserService implements UserDetailsService {
             throw new RoleNotFoundException("Uma ou mais roles não encontradas");
         }
 
-        // Verifica se o usuário possui todas as roles a serem removidas
         for (Role role : foundRoles) {
             if (!user.getRoles().contains(role)) {
                 throw new IllegalArgumentException("O usuário não possui a role: " + role.getName());
             }
         }
 
-        // Garante que o usuário terá pelo menos uma role após a remoção
         if (user.getRoles().size() - foundRoles.size() < 1) {
             throw new IllegalArgumentException("O usuário deve permanecer com pelo menos uma role");
         }

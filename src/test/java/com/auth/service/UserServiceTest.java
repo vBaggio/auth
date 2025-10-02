@@ -22,6 +22,7 @@ import com.auth.dto.RoleDTO;
 import com.auth.dto.UserDTO;
 import com.auth.entity.Role;
 import com.auth.entity.User;
+import com.auth.exception.RoleNotFoundException;
 import com.auth.exception.UserNotFoundException;
 import com.auth.repository.RoleRepository;
 import com.auth.repository.UserRepository;
@@ -165,13 +166,7 @@ class UserServiceTest {
     void shouldAddRolesToUserSuccessfully() {
         when(userRepository.findByIdWithRoles(1L)).thenReturn(Optional.of(defaultUser));
         when(roleRepository.findByNameIn(Set.of(Role.RoleName.ADMIN))).thenReturn(Optional.of(Set.of(adminRole)));
-        
-        User userWithNewRole = new User(DEFAULT_EMAIL, "password", "Test", "User");
-        userWithNewRole.setId(1L);
-        userWithNewRole.addRole(defaultRole);
-        userWithNewRole.addRole(adminRole);
-
-        when(userRepository.save(defaultUser)).thenReturn(userWithNewRole);
+        when(userRepository.save(defaultUser)).thenReturn(defaultUser);
         
         UserDTO updatedUserDTO = userService.addRolesToUser(1L, Set.of(new RoleDTO("ADMIN")));
 
@@ -182,4 +177,109 @@ class UserServiceTest {
             .extracting(RoleDTO::name)
             .containsExactlyInAnyOrder("DEFAULT", "ADMIN");
     }
+
+    @Test
+    @DisplayName("Should throw UserNotFoundException when adding roles to non-existing user")
+    void shouldThrowUserNotFoundExceptionWhenAddingRolesToNonExistingUser() {
+        Long nonExistingId = 99L;
+        when(userRepository.findByIdWithRoles(nonExistingId)).thenReturn(Optional.empty());
+
+        Set<RoleDTO> rolesToAdd = Set.of(new RoleDTO("ADMIN"));
+        assertThatThrownBy(() -> userService.addRolesToUser(nonExistingId, rolesToAdd))
+            .isInstanceOf(UserNotFoundException.class)
+            .hasMessage("Usuário não encontrado com ID: " + nonExistingId);
+    }
+
+    @Test
+    @DisplayName("Should throw RoleNotFoundException when adding non-existing roles to user")
+    void shouldThrowRoleNotFoundExceptionWhenAddingNonExistingRolesToUser() {
+        when(userRepository.findByIdWithRoles(1L)).thenReturn(Optional.of(defaultUser));
+        when(roleRepository.findByNameIn(Set.of(Role.RoleName.ADMIN))).thenReturn(Optional.empty());
+
+        Set<RoleDTO> rolesToAdd = Set.of(new RoleDTO("ADMIN"));
+        assertThatThrownBy(() -> userService.addRolesToUser(1L, rolesToAdd))
+            .isInstanceOf(RoleNotFoundException.class)
+            .hasMessage("Uma ou mais roles não encontradas");
+    }
+
+    @Test
+    @DisplayName("Should throw IllegalArgumentException when adding already assigned role to user")
+    void shouldThrowIllegalArgumentExceptionWhenAddingAlreadyAssignedRoleToUser() {
+        when(userRepository.findByIdWithRoles(1L)).thenReturn(Optional.of(defaultUser));
+        when(roleRepository.findByNameIn(Set.of(Role.RoleName.DEFAULT))).thenReturn(Optional.of(Set.of(defaultRole)));
+
+        Set<RoleDTO> rolesToAdd = Set.of(new RoleDTO("DEFAULT"));
+        assertThatThrownBy(() -> userService.addRolesToUser(1L, rolesToAdd))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessage("O usuário já possui a role: DEFAULT");
+    }
+
+    @Test
+    @DisplayName("Should remove roles from user successfully")
+    void shouldRemoveRolesFromUserSuccessfully() {
+        User userWithBothRoles = new User(DEFAULT_EMAIL, "password", "Test", "User");
+        userWithBothRoles.setId(1L);
+        userWithBothRoles.addRole(defaultRole);
+        userWithBothRoles.addRole(adminRole);
+
+        when(userRepository.findByIdWithRoles(1L)).thenReturn(Optional.of(userWithBothRoles));
+        when(roleRepository.findByNameIn(Set.of(Role.RoleName.ADMIN))).thenReturn(Optional.of(Set.of(adminRole)));
+        when(userRepository.save(userWithBothRoles)).thenReturn(userWithBothRoles);
+        
+        UserDTO updatedUserDTO = userService.removeRolesFromUser(1L, Set.of(new RoleDTO("ADMIN")));
+
+        assertThat(updatedUserDTO).isNotNull();
+        assertThat(updatedUserDTO.id()).isEqualTo(1L);
+        assertThat(updatedUserDTO.roles()).hasSize(1);
+        assertThat(updatedUserDTO.roles().iterator().next().name()).isEqualTo("DEFAULT");
+    }
+
+    @Test
+    @DisplayName("Should throw UserNotFoundException when removing roles from non-existing user")
+    void shouldThrowUserNotFoundExceptionWhenRemovingRolesFromNonExistingUser() {
+        Long nonExistingId = 99L;
+        when(userRepository.findByIdWithRoles(nonExistingId)).thenReturn(Optional.empty());
+        
+        Set<RoleDTO> rolesToRemove = Set.of(new RoleDTO("ADMIN"));
+        assertThatThrownBy(() -> userService.removeRolesFromUser(nonExistingId, rolesToRemove))
+            .isInstanceOf(UserNotFoundException.class)
+            .hasMessage("Usuário não encontrado com ID: " + nonExistingId);
+    }
+
+    @Test
+    @DisplayName("Should throw RoleNotFoundException when removing non-existing roles from user")
+    void shouldThrowRoleNotFoundExceptionWhenRemovingNonExistingRolesFromUser() {
+        when(userRepository.findByIdWithRoles(1L)).thenReturn(Optional.of(defaultUser));
+        when(roleRepository.findByNameIn(Set.of(Role.RoleName.ADMIN))).thenReturn(Optional.empty());
+
+        Set<RoleDTO> rolesToRemove = Set.of(new RoleDTO("ADMIN"));
+        assertThatThrownBy(() -> userService.removeRolesFromUser(1L, rolesToRemove))
+            .isInstanceOf(RoleNotFoundException.class)
+            .hasMessage("Uma ou mais roles não encontradas");
+    }
+
+    @Test
+    @DisplayName("Should throw IllegalArgumentException when removing unassigned role from user")
+    void shouldThrowIllegalArgumentExceptionWhenRemovingUnassignedRoleFromUser() {
+        when(userRepository.findByIdWithRoles(1L)).thenReturn(Optional.of(defaultUser));
+        when(roleRepository.findByNameIn(Set.of(Role.RoleName.ADMIN))).thenReturn(Optional.of(Set.of(adminRole)));
+
+        Set<RoleDTO> rolesToRemove = Set.of(new RoleDTO("ADMIN"));
+        assertThatThrownBy(() -> userService.removeRolesFromUser(1L, rolesToRemove))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessage("O usuário não possui a role: ADMIN");
+    }
+
+    @Test
+    @DisplayName("Should throw RoleNotFoundException when removing all roles leaving user with none")
+    void shouldThrowRoleNotFoundExceptionWhenRemovingAllRolesLeavingUserWithNone() {    
+        when(userRepository.findByIdWithRoles(1L)).thenReturn(Optional.of(defaultUser));
+        when(roleRepository.findByNameIn(Set.of(Role.RoleName.DEFAULT))).thenReturn(Optional.of(Set.of(defaultRole)));
+
+        Set<RoleDTO> rolesToRemove = Set.of(new RoleDTO("DEFAULT"));
+        assertThatThrownBy(() -> userService.removeRolesFromUser(1L, rolesToRemove))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessage("O usuário deve permanecer com pelo menos uma role");
+    }
+
 }
