@@ -13,7 +13,6 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -23,16 +22,17 @@ import java.util.Set;
 
 @RestController
 @RequestMapping("/api/users")
-@CrossOrigin(origins = "http://localhost:3000")
 @Tag(name = "Users", description = "Endpoints para gerenciamento de usuários")
 @SecurityRequirement(name = "Bearer Authentication")
 public class UserController {
     
-    @Autowired
-    private UserService userService;
-    
-    @Autowired
-    private AuthService authService;
+    private final UserService userService;
+    private final AuthService authService;
+
+    public UserController(UserService userService, AuthService authService) {
+        this.userService = userService;
+        this.authService = authService;
+    }
     
     @Operation(summary = "Listar todos os usuários", description = "Retorna uma lista de todos os usuários do sistema (apenas para ADMIN)")
     @ApiResponses(value = {

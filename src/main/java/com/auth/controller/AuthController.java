@@ -19,7 +19,6 @@ import org.slf4j.LoggerFactory;
 
 @RestController
 @RequestMapping("/api/auth")
-@CrossOrigin(origins = "http://localhost:3000")
 @Tag(name = "Authentication", description = "Endpoints para autenticação e registro de usuários")
 public class AuthController {
     

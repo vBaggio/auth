@@ -110,6 +110,7 @@ class UserServiceTest {
         .roles())
         .extracting(RoleDTO::name)
         .containsExactly("ADMIN");
+        
     }
 
     @Test
